@@ -2,7 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRouter from './routers/authRouter';
-import subjectRouter from './routers/subjectRouter'; 
+import subjectRouter from './routers/subjectRouter';
+import resourceRouter from './routers/resourceRouter'; // <-- 1. Importar el nuevo router de recursos
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.get('/api/health', (req, res) => {
 
 // 2. Montar los routers de la API
 app.use('/api/auth', authRouter);
-app.use('/api/subjects', subjectRouter); // <-- 2. Montar el router en la ruta /api/subjects
+app.use('/api/subjects', subjectRouter);
+app.use('/api/resources', resourceRouter); // <-- 2. Montar el router en la ruta /api/resources
 
 export default app;

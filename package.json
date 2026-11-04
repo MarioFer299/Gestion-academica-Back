@@ -18,7 +18,12 @@
     "type": "git",
     "url": "git+https://github.com/MarioFer299/Gestion-academica-Back.git"
   },
-  "keywords": ["express", "typescript", "prisma", "postgresql"],
+  "keywords": [
+    "express",
+    "typescript",
+    "prisma",
+    "postgresql"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {
@@ -35,6 +40,7 @@
     "express": "^4.21.1",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
+    "node-fetch": "^3.3.2",
     "prisma": "^5.22.0",
     "zod": "^3.23.8"
   },
