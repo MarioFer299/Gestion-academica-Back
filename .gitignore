@@ -1,0 +1,26 @@
+# Dependencias de Node.js (¡NUNCA se suben!)
+node_modules/
+
+# Archivos de entorno con credenciales reales (¡PELIGRO!)
+.env
+.env.local
+.env.*.local
+
+# Archivos compilados de TypeScript
+dist/
+build/
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs de npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Carpetas de IA o editores (por si acaso)
+.vscode/
+.idea/
+.claude/
+.cursor/

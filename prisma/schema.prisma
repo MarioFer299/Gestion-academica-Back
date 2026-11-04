@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  fullName  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  periods   AcademicPeriod[]
+  resources Resource[]
+}
+
+model AcademicPeriod {
+  id        String   @id @default(uuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  subjects  Subject[]
+}
+
+model Subject {
+  id               String         @id @default(uuid())
+  name             String
+  academicPeriodId String
+  period           AcademicPeriod @relation(fields: [academicPeriodId], references: [id])
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  deletedAt        DateTime?
+
+  resources        Resource[]
+}
+
+model Resource {
+  id           String   @id @default(uuid())
+  title        String
+  fileUrl      String
+  fileType     String
+  subjectId    String
+  subject      Subject  @relation(fields: [subjectId], references: [id])
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+  deletedAt    DateTime?
+}
