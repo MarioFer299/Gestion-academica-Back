@@ -55,7 +55,6 @@ npm run dev
 
 El backend sigue estrictamente una **arquitectura de 4 capas** para garantizar la mantenibilidad, la separación de responsabilidades y el cumplimiento de los principios SOLID:
 
-```text
 src/
 ├── domain/          → Modelos de negocio e interfaces de repositorios (sin dependencias externas).
 ├── application/     → Casos de uso (reglas de negocio puras y validaciones).
