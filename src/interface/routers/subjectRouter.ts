@@ -1,15 +1,17 @@
 import { Router } from 'express';
 import { subjectController } from '../controllers/SubjectController';
+import { authenticate } from '../middlewares/authMiddleware';
+import { authorize } from '../middlewares/roleMiddleware';
 
 const router = Router();
 
-// GET /api/subjects?page=1&limit=10&search=matematicas
-router.get('/', subjectController.getSubjects);
+router.use(authenticate);
+router.use(authorize('ADMIN', 'USER'));
 
-// POST /api/subjects
-router.post('/', subjectController.createSubject);
-
-// DELETE /api/subjects/:id (Borrado lógico)
-router.delete('/:id', subjectController.deleteSubject);
+router.get('/', subjectController.getAll);
+router.get('/:id', subjectController.getById);
+router.post('/', subjectController.create);
+router.put('/:id', subjectController.update);
+router.delete('/:id', subjectController.delete);
 
 export default router;

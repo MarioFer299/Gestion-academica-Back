@@ -1,66 +1,80 @@
-import { Request, Response, NextFunction } from 'express';
-import { GetSubjectsUseCase } from '../../application/use-cases/GetSubjectsUseCase';
-import { CreateSubjectUseCase } from '../../application/use-cases/CreateSubjectUseCase';
-import { SoftDeleteSubjectUseCase } from '../../application/use-cases/SoftDeleteSubjectUseCase';
-import { PrismaSubjectRepository } from '../../infrastructure/repositories/PrismaSubjectRepository';
-import { prisma } from '../../infrastructure/database/prismaClient';
-
-const subjectRepository = new PrismaSubjectRepository(prisma);
-const getSubjectsUseCase = new GetSubjectsUseCase(subjectRepository);
-const createSubjectUseCase = new CreateSubjectUseCase(subjectRepository);
-const softDeleteSubjectUseCase = new SoftDeleteSubjectUseCase(subjectRepository);
+import { Response, NextFunction } from 'express';
+import { AuthRequest } from '../middlewares/authMiddleware';
 
 export class SubjectController {
-  async getSubjects(req: Request, res: Response, next: NextFunction) {
+  // Ajusta los tipos de los casos de uso a los que tú tengas creados
+  constructor(private getSubjectsUseCase: any, private manageSubjectUseCase: any) {}
+
+  async getAll(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
-      const search = req.query.search as string | undefined;
+      const userId = req.user!.id;
+      const { page = '1', limit = '10', search } = req.query;
 
-      const result = await getSubjectsUseCase.execute(page, limit, search);
-
-      return res.status(200).json({
-        success: true,
-        data: result.data,
-        pagination: {
-          total: result.total,
-          page,
-          limit,
-          totalPages: Math.ceil(result.total / limit)
-        }
+      const result = await this.getSubjectsUseCase.execute({
+        userId,
+        page: parseInt(page as string),
+        limit: parseInt(limit as string),
+        search: search as string
       });
+
+      return res.status(200).json(result);
     } catch (error) {
       next(error);
     }
   }
 
-  async createSubject(req: Request, res: Response, next: NextFunction) {
+  async getById(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { name, academicPeriodId } = req.body;
-
-      if (!name || !academicPeriodId) {
-        return res.status(400).json({ error: 'Nombre y periodo académico son requeridos' });
-      }
-
-      const subject = await createSubjectUseCase.execute({ name, academicPeriodId });
-      return res.status(201).json({ success: true, data: subject });
-    } catch (error: any) {
+      const userId = req.user!.id;
+      const { id } = req.params;
+      const subject = await this.getSubjectsUseCase.getById(id, userId);
+      return res.status(200).json(subject);
+    } catch (error) {
       next(error);
     }
   }
 
-  async deleteSubject(req: Request, res: Response, next: NextFunction) {
+  async create(req: AuthRequest, res: Response, next: NextFunction) {
     try {
+      const userId = req.user!.id;
+      const { name, academicPeriodId, description } = req.body;
+
+      const newSubject = await this.manageSubjectUseCase.create({
+        name,
+        academicPeriodId,
+        description
+      }, userId);
+
+      return res.status(201).json(newSubject);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async update(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.id;
       const { id } = req.params;
-      const subject = await softDeleteSubjectUseCase.execute(id);
-      return res.status(200).json({ success: true, message: 'Materia eliminada lógicamente', data: subject });
-    } catch (error: any) {
-      if (error.message.includes('no encontrada')) {
-        return res.status(404).json({ error: error.message });
-      }
+      const data = req.body;
+
+      const updated = await this.manageSubjectUseCase.update(id, data, userId);
+      return res.status(200).json(updated);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async delete(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.id;
+      const { id } = req.params;
+
+      await this.manageSubjectUseCase.delete(id, userId);
+      return res.status(200).json({ message: 'Materia eliminada lógicamente' });
+    } catch (error) {
       next(error);
     }
   }
 }
 
-export const subjectController = new SubjectController();
+export const subjectController = new SubjectController(null as any, null as any);

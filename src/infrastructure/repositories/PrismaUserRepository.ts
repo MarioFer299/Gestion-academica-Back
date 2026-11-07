@@ -37,9 +37,10 @@ export class PrismaUserRepository implements IUserRepository {
       email: prismaUser.email,
       password: prismaUser.password,
       fullName: prismaUser.fullName,
-      role: prismaUser.role as Role,
+      role: prismaUser.role as unknown as Role, // <-- ESTA ES LA LÍNEA CLAVE
       createdAt: prismaUser.createdAt,
       updatedAt: prismaUser.updatedAt,
+      deletedAt: prismaUser.deletedAt
     };
   }
 }

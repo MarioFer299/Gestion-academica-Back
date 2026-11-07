@@ -1,13 +1,17 @@
 import { Router } from 'express';
-import multer from 'multer';
 import { resourceController } from '../controllers/ResourceController';
-
-// Configurar Multer para guardar en memoria (buffer) antes de subir a S3
-const upload = multer({ storage: multer.memoryStorage() });
+import { authenticate } from '../middlewares/authMiddleware';
+import { authorize } from '../middlewares/roleMiddleware';
 
 const router = Router();
 
-// POST /api/resources (requiere archivo 'file' en form-data)
-router.post('/', upload.single('file'), resourceController.uploadResource);
+router.use(authenticate);
+router.use(authorize('ADMIN', 'USER'));
+
+router.get('/', resourceController.getAll || resourceController.getFiles);
+router.get('/:id', resourceController.getById || resourceController.getFile);
+router.post('/', resourceController.create || resourceController.upload); 
+router.put('/:id', resourceController.update);
+router.delete('/:id', resourceController.delete);
 
 export default router;
