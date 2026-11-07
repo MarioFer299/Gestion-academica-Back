@@ -1,45 +1,52 @@
-import { PrismaClient, Role } from '@prisma/client';
+import 'dotenv/config'; // <-- ESTA LÍNEA ES LA CLAVE: Carga las variables del .env
+import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Iniciando seed de base de datos...');
+  console.log('🌱 Iniciando seed seguro...');
 
-  // Limpiar tablas existentes (orden importa por las relaciones)
-  await prisma.resource.deleteMany();
-  await prisma.subject.deleteMany();
-  await prisma.academicPeriod.deleteMany();
-  await prisma.user.deleteMany();
-  console.log('🗑️  Tablas limpiadas');
-
-  // Crear contraseñas hasheadas
+  // Hashear contraseñas
   const adminPassword = await bcrypt.hash('Admin123!', 10);
   const userPassword = await bcrypt.hash('User123!', 10);
 
-  // Crear Admin
-  const admin = await prisma.user.create({
-    data: {
-      email: 'admin@focuslab.com',
-      password: adminPassword,
+  // Crear o actualizar usuario ADMIN (upsert = insertar si no existe, actualizar si existe)
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@focuslab.com' },
+    update: {
       fullName: 'Administrador FocusLab',
-      role: Role.ADMIN,
+      password: adminPassword,
+      role: 'ADMIN'
     },
+    create: {
+      email: 'admin@focuslab.com',
+      fullName: 'Administrador FocusLab',
+      password: adminPassword,
+      role: 'ADMIN'
+    }
   });
-  console.log(`✅ Admin creado: ${admin.email} / Contraseña: Admin123!`);
 
-  // Crear User
-  const user = await prisma.user.create({
-    data: {
-      email: 'user@focuslab.com',
-      password: userPassword,
+  // Crear o actualizar usuario USER
+  const user = await prisma.user.upsert({
+    where: { email: 'user@focuslab.com' },
+    update: {
       fullName: 'Usuario Estudiante',
-      role: Role.USER,
+      password: userPassword,
+      role: 'USER'
     },
+    create: {
+      email: 'user@focuslab.com',
+      fullName: 'Usuario Estudiante',
+      password: userPassword,
+      role: 'USER'
+    }
   });
-  console.log(`✅ User creado: ${user.email} / Contraseña: User123!`);
 
-  console.log('🎉 Seed completado exitosamente');
+  console.log('✅ Seed completado exitosamente');
+  console.log('📧 Credenciales de prueba:');
+  console.log('   ADMIN:', admin.email, '/ Admin123!');
+  console.log('   USER:', user.email, '/ User123!');
 }
 
 main()
