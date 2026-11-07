@@ -43,6 +43,7 @@ model AcademicPeriod {
 model Subject {
   id               String         @id @default(uuid())
   name             String
+  description      String?        // <-- AGREGADO: Evita error de compilación en PrismaSubjectRepository
   academicPeriodId String
   period           AcademicPeriod @relation(fields: [academicPeriodId], references: [id])
   createdAt        DateTime       @default(now())
