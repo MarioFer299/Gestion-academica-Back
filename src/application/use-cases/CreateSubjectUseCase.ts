@@ -4,7 +4,7 @@ import { Subject } from '../../domain/models/Subject';
 export class CreateSubjectUseCase {
   constructor(private subjectRepository: ISubjectRepository) {}
 
-  async execute(data: Omit<Subject, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'>) {
-    return await this.subjectRepository.create(data);
+  async execute(data: any, userId: string) {
+    return await this.subjectRepository.create(data, userId);
   }
 }

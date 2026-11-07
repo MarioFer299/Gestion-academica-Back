@@ -1,58 +1,58 @@
-import { PrismaClient, Subject as PrismaSubject } from '@prisma/client';
+// src/infrastructure/repositories/PrismaSubjectRepository.ts
+import { PrismaClient, Prisma } from '@prisma/client';
 import { ISubjectRepository } from '../../domain/repositories/ISubjectRepository';
-import { Subject } from '../../domain/models/Subject';
 
 export class PrismaSubjectRepository implements ISubjectRepository {
   constructor(private prisma: PrismaClient) {}
 
-  async findAll(page: number, limit: number, search?: string): Promise<{ data: Subject[], total: number }> {
-    const skip = (page - 1) * limit;
-    
-    const where = search ? {
-      name: { contains: search, mode: 'insensitive' },
-      deletedAt: null 
-    } : { deletedAt: null };
+  async findAll(userId: string, page: number, limit: number, search?: string) {
+    const where: Prisma.SubjectWhereInput = {
+      deletedAt: null,
+      period: { userId: userId },
+      ...(search ? { name: { contains: search, mode: Prisma.QueryMode.insensitive } } : {})
+    };
 
-    const [data, total] = await Promise.all([
+    const [subjects, total] = await Promise.all([
       this.prisma.subject.findMany({
         where,
-        skip,
+        skip: (page - 1) * limit,
         take: limit,
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        include: { period: true }
       }),
       this.prisma.subject.count({ where })
     ]);
 
-    return { 
-      data: data.map(this.mapToDomain), 
-      total 
+    return {
+      data: subjects,
+      pagination: {
+        total,
+        currentPage: page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
     };
   }
 
-  async create(data: Omit<Subject, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'>): Promise<Subject> {
-    const subject = await this.prisma.subject.create({
-      data: { ...data, deletedAt: null }
+  async findById(id: string, userId: string) {
+    return this.prisma.subject.findFirst({
+      where: { id, deletedAt: null, period: { userId } },
+      include: { period: true }
     });
-    return this.mapToDomain(subject);
   }
 
-  async softDelete(id: string): Promise<Subject | null> {
-    const subject = await this.prisma.subject.update({
+  async create(data: any, userId: string) {
+    return this.prisma.subject.create({ data });
+  }
+
+  async update(id: string, data: any, userId: string) {
+    return this.prisma.subject.update({ where: { id }, data });
+  }
+
+  async delete(id: string, userId: string) {
+    return this.prisma.subject.update({
       where: { id },
       data: { deletedAt: new Date() }
     });
-    return this.mapToDomain(subject);
-  }
-
-  private mapToDomain(prismaSubject: PrismaSubject): Subject {
-    return {
-      id: prismaSubject.id,
-      name: prismaSubject.name,
-      description: prismaSubject.description || undefined,
-      academicPeriodId: prismaSubject.academicPeriodId,
-      deletedAt: prismaSubject.deletedAt,
-      createdAt: prismaSubject.createdAt,
-      updatedAt: prismaSubject.updatedAt,
-    };
   }
 }

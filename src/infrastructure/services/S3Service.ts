@@ -31,4 +31,15 @@ export class S3Service {
     // Retornamos la URL pública
     return `${this.baseUrl}/storage/v1/object/public/${this.bucketName}/${key}`;
   }
+
+  // ✅ Método agregado para obtener URL de archivo existente
+  async getFileUrl(key: string): Promise<string> {
+    // Si ya es una URL pública, la retornamos
+    if (key.includes('/public/')) {
+      return key;
+    }
+    
+    // Si es una key interna, construimos la URL pública
+    return `${this.baseUrl}/storage/v1/object/public/${this.bucketName}/${key}`;
+  }
 }

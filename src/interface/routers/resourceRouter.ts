@@ -8,9 +8,10 @@ const router = Router();
 router.use(authenticate);
 router.use(authorize('ADMIN', 'USER'));
 
-router.get('/', resourceController.getAll || resourceController.getFiles);
-router.get('/:id', resourceController.getById || resourceController.getFile);
-router.post('/', resourceController.create || resourceController.upload); 
+// ✅ Sin fallbacks - los métodos ya existen en el controller
+router.get('/', resourceController.getAll);
+router.get('/:id', resourceController.getById);
+router.post('/', resourceController.create);
 router.put('/:id', resourceController.update);
 router.delete('/:id', resourceController.delete);
 
